@@ -15,7 +15,7 @@ services:
     volumes:
       - ./mysql-data:/var/lib/mysql
     container_name: amuraa_mysql
-
+    
   amuraa:
     restart: always
     depends_on:
@@ -28,10 +28,17 @@ services:
       - ./TestDockerDjango:/app
       - static-data:/vol/static
       - media-data:/vol/media
+    environment:
+      - PORT=8000
+    expose:
+      - "8000"
     env_file:
       - ./TestDockerDjango/.env
     ports:
       - "8000:8000"
+    networks:
+      local_network:
+        ipv4_address: 172.28.0.6
     
   celery:
     container_name: celery_worker
@@ -41,12 +48,18 @@ services:
     entrypoint: ["sh", "/app/celery_start_entrypoint.sh"]
     volumes:
       - ./TestDockerDjango:/app
+      - ./logs/celery:/var/log/celery
     env_file:
       - ./TestDockerDjango/.env
     depends_on:
       - amuraa_mysql
       - redis
       - amuraa
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 
   celery_beat:
@@ -57,13 +70,18 @@ services:
     entrypoint: ["sh", "/app/celerybeat_start_entrypoint.sh"]
     volumes:
       - ./TestDockerDjango:/app
+      - ./logs/celery_beat:/var/log/celery_beat
     env_file:
       - ./TestDockerDjango/.env
     depends_on:
       - amuraa
       - amuraa_mysql
       - redis
-      
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
       
   nginx:
     restart: always
@@ -77,10 +95,23 @@ services:
     volumes:
       - static-data:/vol/static
       - media-data:/vol/media
+      - ./nginx:/etc/nginx/conf.d
+      - ./nginx/nginx_logs:/var/log/nginx
     ports:
       - '80:80'
+    networks:
+      local_network:
+        ipv4_address: 172.28.0.7
 
 volumes:
   static-data:
   media-data:
   mysql-data:
+
+
+networks:
+  local_network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16

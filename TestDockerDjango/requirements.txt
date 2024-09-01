@@ -101,5 +101,4 @@ python-crontab
 python-dateutil
 python-dotenv
 requests
-uvicorn[standard]
-
+uvicorn

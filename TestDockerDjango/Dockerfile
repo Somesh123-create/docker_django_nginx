@@ -31,3 +31,5 @@ RUN /opt/venv/bin/pip install --upgrade pip && \
 
 # Set the script as the entrypoint
 ENTRYPOINT ["/app/check_mysql_up.sh", "amuraa_mysql", "3306", "sh /app/migrate.sh"]
+
+EXPOSE ${PORT}

@@ -3,7 +3,8 @@
 import os
 import sys
 from pathlib import Path
-
+from dotenv import load_dotenv
+load_dotenv(".env")
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 

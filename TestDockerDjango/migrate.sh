@@ -21,5 +21,6 @@ if not User.objects.filter(username='admin').exists():
     User.objects.create_superuser('admin', 'admin@example.com', 'adminpassword')
 "
 
+
 APP_PORT=${PORT:-8000}
-/opt/venv/bin/gunicorn --worker-tmp-dir /dev/shm amuraa.wsgi:application --bind "0.0.0.0:${APP_PORT}"
+/opt/venv/bin/uvicorn amuraa.asgi:application --host 0.0.0.0 --port ${APP_PORT}

@@ -8,7 +8,8 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
 """
 
 import os
-
+from dotenv import load_dotenv
+load_dotenv(".env")
 from django.core.asgi import get_asgi_application
 
 os.getenv('DJANGO_SETTINGS_MODULE')
