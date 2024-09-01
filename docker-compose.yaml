@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  redis:
+    restart: always
+    image: redis:alpine
+    container_name: redis
+    
+  amuraa_mysql:
+    image: mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=somesh
+      - MYSQL_DATABASE=amuraa_db
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    container_name: amuraa_mysql
+
+  amuraa:
+    restart: always
+    depends_on:
+        - amuraa_mysql
+    image: amuraa
+    build:
+      context: ./TestDockerDjango
+      dockerfile: Dockerfile
+    volumes:
+      - ./TestDockerDjango:/app
+      - static-data:/vol/static
+      - media-data:/vol/media
+    env_file:
+      - ./TestDockerDjango/.env
+    ports:
+      - "8000:8000"
+    
+  celery:
+    container_name: celery_worker
+    restart: always
+    build:
+      context: ./TestDockerDjango
+    entrypoint: ["sh", "/app/celery_start_entrypoint.sh"]
+    volumes:
+      - ./TestDockerDjango:/app
+    env_file:
+      - ./TestDockerDjango/.env
+    depends_on:
+      - amuraa_mysql
+      - redis
+      - amuraa
+
+
+  celery_beat:
+    container_name: celery_beat
+    restart: always
+    build:
+      context: ./TestDockerDjango
+    entrypoint: ["sh", "/app/celerybeat_start_entrypoint.sh"]
+    volumes:
+      - ./TestDockerDjango:/app
+    env_file:
+      - ./TestDockerDjango/.env
+    depends_on:
+      - amuraa
+      - amuraa_mysql
+      - redis
+      
+      
+  nginx:
+    restart: always
+    depends_on:
+      - amuraa_mysql
+      - redis
+      - amuraa
+    build: ./nginx
+    image: nginx
+    container_name: dj_nginx
+    volumes:
+      - static-data:/vol/static
+      - media-data:/vol/media
+    ports:
+      - '80:80'
+
+volumes:
+  static-data:
+  media-data:
+  mysql-data:
